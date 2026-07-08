@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ucv.planillas.controller.LoginController"
+            stylesheets="@styles/login.css"
+            styleClass="fondo-login">
+    <center>
+        <VBox alignment="CENTER" spacing="14" maxWidth="320" styleClass="caja-login">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+            <Label text="Sistema de Gestion de RRHH" styleClass="titulo-login"/>
+
+            <VBox spacing="4">
+                <Label text="Usuario"/>
+                <TextField fx:id="txtUsuario" promptText="admin"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Contraseña"/>
+                <PasswordField fx:id="txtPassword" promptText="********"/>
+            </VBox>
+
+            <Button text="Ingresar" onAction="#onIngresar" styleClass="boton-login" maxWidth="Infinity"/>
+            <Label fx:id="lblMensaje" styleClass="mensaje-login" wrapText="true"/>
+        </VBox>
+    </center>
+</BorderPane>

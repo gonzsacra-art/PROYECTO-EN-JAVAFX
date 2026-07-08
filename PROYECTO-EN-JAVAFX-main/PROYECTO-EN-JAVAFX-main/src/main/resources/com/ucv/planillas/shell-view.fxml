@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ucv.planillas.controller.ShellController"
+            stylesheets="@styles/app.css" styleClass="fondo-app">
+    <top>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="barra-superior">
+                <padding><Insets top="12" right="20" bottom="12" left="20"/></padding>
+                <Label fx:id="lblBienvenida" styleClass="titulo-barra"/>
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Button text="Cerrar Sesión" onAction="#onCerrarSesion" styleClass="boton-secundario"/>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="barra-menu">
+                <padding><Insets top="8" right="20" bottom="8" left="20"/></padding>
+                <Button text="Empleados" onAction="#onEmpleados" styleClass="boton-menu"/>
+                <Button fx:id="btnDepartamentos" text="Departamentos" onAction="#onDepartamentos" styleClass="boton-menu"/>
+                <Button fx:id="btnBonos" text="Bonos" onAction="#onBonos" styleClass="boton-menu"/>
+                <Button text="Horas Extra" onAction="#onHorasExtra" styleClass="boton-menu"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="contenido">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+        </StackPane>
+    </center>
+</BorderPane>

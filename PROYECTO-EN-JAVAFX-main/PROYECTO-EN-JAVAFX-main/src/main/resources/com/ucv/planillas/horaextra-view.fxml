@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ucv.planillas.controller.HoraExtraController"
+      spacing="20" stylesheets="@styles/app.css">
+    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+    <VBox spacing="8" prefWidth="260">
+        <Label text="Empleado"/>
+        <ComboBox fx:id="cmbEmpleado" maxWidth="Infinity"/>
+        <Label text="Fecha"/>
+        <DatePicker fx:id="dpFecha" maxWidth="Infinity"/>
+        <Label text="Horas Trabajadas"/>
+        <TextField fx:id="txtHoras"/>
+        <Label text="Motivo"/>
+        <TextField fx:id="txtMotivo"/>
+        <Separator/>
+        <Label text="Valor por hora (automático):"/>
+        <Label fx:id="lblValorHora"/>
+        <Label text="Pago estimado (según ley):"/>
+        <Label fx:id="lblPagoEstimado"/>
+        <Button text="Registrar" onAction="#onRegistrar" styleClass="boton-accion"/>
+        <Label fx:id="lblMensaje" styleClass="mensaje" wrapText="true"/>
+    </VBox>
+    <VBox spacing="8" HBox.hgrow="ALWAYS">
+        <Label text="Registros"/>
+        <ListView fx:id="listaHoras" VBox.vgrow="ALWAYS"/>
+    </VBox>
+</HBox>

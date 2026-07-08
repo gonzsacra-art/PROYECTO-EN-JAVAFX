@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ucv.planillas.controller.EmpleadoController"
+      spacing="20" stylesheets="@styles/app.css">
+    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+    <VBox spacing="8" prefWidth="260">
+        <Label text="Nombre"/>
+        <TextField fx:id="txtNombre"/>
+        <Label text="Sueldo"/>
+        <TextField fx:id="txtSueldo"/>
+        <Label text="Régimen"/>
+        <ComboBox fx:id="cmbRegimen" maxWidth="Infinity"/>
+        <Button text="Agregar Empleado" onAction="#onAgregar" styleClass="boton-accion"/>
+        <Label fx:id="lblMensaje" styleClass="mensaje" wrapText="true"/>
+        <Separator/>
+        <Label text="Descuento:"/>
+        <Label fx:id="lblDescuento"/>
+        <Label text="Neto a pagar:"/>
+        <Label fx:id="lblNeto"/>
+    </VBox>
+    <VBox spacing="8" HBox.hgrow="ALWAYS">
+        <Label text="Lista de Empleados"/>
+        <ListView fx:id="listaEmpleados" onMouseClicked="#onSeleccionar" VBox.vgrow="ALWAYS"/>
+    </VBox>
+</HBox>

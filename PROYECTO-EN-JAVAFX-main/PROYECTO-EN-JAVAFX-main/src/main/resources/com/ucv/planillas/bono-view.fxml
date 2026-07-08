@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ucv.planillas.controller.BonoController"
+      spacing="20" stylesheets="@styles/app.css">
+    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+    <VBox spacing="8" prefWidth="260">
+        <Label text="Empleado"/>
+        <ComboBox fx:id="cmbEmpleado" maxWidth="Infinity"/>
+        <Label text="Tipo de Bono"/>
+        <ComboBox fx:id="cmbTipo" maxWidth="Infinity"/>
+        <Label text="Monto"/>
+        <TextField fx:id="txtMonto"/>
+        <Button text="Registrar Bono" onAction="#onRegistrarBono" styleClass="boton-accion"/>
+        <Label fx:id="lblMensaje" styleClass="mensaje" wrapText="true"/>
+    </VBox>
+    <VBox spacing="8" HBox.hgrow="ALWAYS">
+        <Label text="Bonos Registrados"/>
+        <ListView fx:id="listaBonos" VBox.vgrow="ALWAYS"/>
+        <Label text="Total pagado en bonos:"/>
+        <Label fx:id="lblTotal"/>
+    </VBox>
+</HBox>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ucv.planillas.controller.DepartamentoController"
+      spacing="20" stylesheets="@styles/app.css">
+    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+    <VBox spacing="8" prefWidth="240">
+        <Label text="ID"/>
+        <TextField fx:id="txtIdDepto"/>
+        <Label text="Nombre"/>
+        <TextField fx:id="txtNombreDepto"/>
+        <Label text="Jefe"/>
+        <TextField fx:id="txtJefeDepto"/>
+        <Button text="Crear Departamento" onAction="#onCrearDepartamento" styleClass="boton-accion"/>
+        <Button text="Eliminar Departamento" onAction="#onEliminarDepartamento" styleClass="boton-secundario"/>
+        <Label fx:id="lblMensaje" styleClass="mensaje" wrapText="true"/>
+    </VBox>
+    <VBox spacing="8" prefWidth="260">
+        <Label text="Departamentos"/>
+        <ListView fx:id="listaDepartamentos" VBox.vgrow="ALWAYS"/>
+        <Label text="Detalle"/>
+        <Label fx:id="lblDetalleNombre"/>
+        <Label fx:id="lblDetalleJefe"/>
+        <Label fx:id="lblDetalleTotalEmp"/>
+        <Label fx:id="lblDetalleMasaSalarial"/>
+    </VBox>
+    <VBox spacing="8" HBox.hgrow="ALWAYS">
+        <Label text="Empleados del Departamento"/>
+        <ComboBox fx:id="cmbEmpleadosDisponibles" maxWidth="Infinity"/>
+        <HBox spacing="8">
+            <Button text="Asignar" onAction="#onAsignarEmpleado" styleClass="boton-accion"/>
+            <Button text="Remover" onAction="#onRemoverEmpleado" styleClass="boton-secundario"/>
+        </HBox>
+        <ListView fx:id="listaEmpDepto" VBox.vgrow="ALWAYS"/>
+    </VBox>
+</HBox>
