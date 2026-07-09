@@ -1,4 +1,4 @@
-package com.ucv.planillas.service;
+package com.ucv.planillas.Module;
 
 import com.ucv.planillas.controller.*;
 import javafx.util.Callback;

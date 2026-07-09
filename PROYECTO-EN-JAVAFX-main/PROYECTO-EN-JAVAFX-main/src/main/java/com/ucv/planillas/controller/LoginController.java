@@ -1,10 +1,10 @@
 package com.ucv.planillas.controller;
 
 import com.ucv.planillas.model.Usuario;
-import com.ucv.planillas.service.AutenticacionService;
-import com.ucv.planillas.service.Fabrica;
-import com.ucv.planillas.service.Navegador;
-import com.ucv.planillas.service.SesionService;
+import com.ucv.planillas.Module.AutenticacionService;
+import com.ucv.planillas.Module.Fabrica;
+import com.ucv.planillas.Module.Navegador;
+import com.ucv.planillas.Module.SesionService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;

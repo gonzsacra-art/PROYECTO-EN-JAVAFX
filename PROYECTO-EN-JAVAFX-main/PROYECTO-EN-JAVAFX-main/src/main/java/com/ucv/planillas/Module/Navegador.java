@@ -1,4 +1,4 @@
-package com.ucv.planillas.service;
+package com.ucv.planillas.Module;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

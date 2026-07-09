@@ -1,6 +1,6 @@
 package com.ucv.planillas.model;
 
-import com.ucv.planillas.service.Planilla;
+import com.ucv.planillas.Module.Planilla;
 
 // clase Empleado - modelo principal de la planilla
 public class Empleado {

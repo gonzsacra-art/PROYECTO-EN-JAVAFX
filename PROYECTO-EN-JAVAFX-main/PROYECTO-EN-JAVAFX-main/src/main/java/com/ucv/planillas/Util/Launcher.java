@@ -1,6 +1,6 @@
-package com.ucv.planillas;
+package com.ucv.planillas.Util;
 
-import com.ucv.planillas.service.Fabrica;
+import com.ucv.planillas.Module.Fabrica;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

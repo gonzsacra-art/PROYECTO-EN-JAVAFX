@@ -2,8 +2,8 @@ package com.ucv.planillas.controller;
 
 import com.ucv.planillas.model.Bono;
 import com.ucv.planillas.model.Empleado;
-import com.ucv.planillas.service.BonoRepositorio;
-import com.ucv.planillas.service.EmpleadoRepositorio;
+import com.ucv.planillas.Module.BonoRepositorio;
+import com.ucv.planillas.Module.EmpleadoRepositorio;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
