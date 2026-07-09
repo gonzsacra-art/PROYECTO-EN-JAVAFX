@@ -1,9 +1,8 @@
 package com.ucv.planillas.controller;
 
+import com.ucv.planillas.Service.IGestionRRHHService;
 import com.ucv.planillas.model.Bono;
 import com.ucv.planillas.model.Empleado;
-import com.ucv.planillas.Module.BonoRepositorio;
-import com.ucv.planillas.Module.EmpleadoRepositorio;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,27 +19,33 @@ public class BonoController {
     @FXML private Label lblMensaje;
     @FXML private Label lblTotal;
 
-    // INYECCION DE DEPENDENCIAS
-    private final BonoRepositorio bonoRepo;
-    private final EmpleadoRepositorio empleadoRepo;
+    // INYECCIÓN DEL SERVICIO CENTRALIZADO
+    private final IGestionRRHHService gestionRRHHService;
 
-    public BonoController(BonoRepositorio bonoRepo, EmpleadoRepositorio empleadoRepo) {
-        this.bonoRepo = bonoRepo;
-        this.empleadoRepo = empleadoRepo;
+    // El constructor ahora recibe el servicio único desde AppContext
+    public BonoController(IGestionRRHHService gestionRRHHService) {
+        this.gestionRRHHService = gestionRRHHService;
     }
 
     @FXML
     public void initialize() {
-        ObservableList<String> nombres = FXCollections.observableArrayList();
-        for (Empleado e : empleadoRepo.getEmpleados()) nombres.add(e.getNombre());
-        cmbEmpleado.setItems(nombres);
-        if (!nombres.isEmpty()) cmbEmpleado.setValue(nombres.get(0));
+        try {
+            ObservableList<String> nombres = FXCollections.observableArrayList();
+            // Listamos los empleados desde la base de datos a través del servicio
+            for (Empleado e : gestionRRHHService.listar()) {
+                nombres.add(e.getNombre());
+            }
+            cmbEmpleado.setItems(nombres);
+            if (!nombres.isEmpty()) cmbEmpleado.setValue(nombres.get(0));
 
-        cmbTipo.setItems(FXCollections.observableArrayList(Bono.TipoBono.values()));
-        cmbTipo.setValue(Bono.TipoBono.PRODUCTIVIDAD);
+            cmbTipo.setItems(FXCollections.observableArrayList(Bono.TipoBono.values()));
+            cmbTipo.setValue(Bono.TipoBono.PRODUCTIVIDAD);
 
-        actualizarLista();
-        actualizarTotal();
+            actualizarLista();
+            actualizarTotal();
+        } catch (Exception e) {
+            lblMensaje.setText("Error al inicializar bonos: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -55,28 +60,60 @@ public class BonoController {
         try {
             monto = Double.parseDouble(txtMonto.getText());
         } catch (NumberFormatException e) {
-            lblMensaje.setText("El monto debe ser un numero.");
+            lblMensaje.setText("El monto debe ser un número.");
             return;
         }
 
-        Empleado empleado = empleadoRepo.buscarPorNombre(nombreEmp);
-        Bono nuevo = new Bono(bonoRepo.siguienteId(), empleado, cmbTipo.getValue(), monto, LocalDate.now());
-        bonoRepo.agregar(nuevo);
-        actualizarLista();
-        actualizarTotal();
-        txtMonto.clear();
-        lblMensaje.setText("Bono registrado correctamente.");
+        try {
+            // Buscamos al empleado activo usando el servicio
+            Empleado empleado = gestionRRHHService.buscarPorNombre(nombreEmp);
+            if (empleado == null) {
+                lblMensaje.setText("No se encontró al empleado seleccionado.");
+                return;
+            }
+
+            // Creamos el nuevo bono asignándole un ID único temporal en texto
+            Bono nuevo = new Bono(
+                    java.util.UUID.randomUUID().toString().substring(0, 8),
+                    empleado,
+                    cmbTipo.getValue(),
+                    monto,
+                    LocalDate.now()
+            );
+
+            // Registramos el bono en el servicio
+            gestionRRHHService.registrarBono(nuevo);
+
+            actualizarLista();
+            actualizarTotal();
+            txtMonto.clear();
+            lblMensaje.setText("Bono registrado correctamente.");
+        } catch (Exception e) {
+            lblMensaje.setText("Error al registrar bono: " + e.getMessage());
+        }
     }
 
     private void actualizarLista() {
-        ObservableList<String> items = FXCollections.observableArrayList();
-        for (Bono b : bonoRepo.getBonos()) items.add(b.toString());
-        listaBonos.setItems(items);
+        try {
+            ObservableList<String> items = FXCollections.observableArrayList();
+            for (Bono b : gestionRRHHService.listarBonos()) {
+                items.add(b.toString());
+            }
+            listaBonos.setItems(items);
+        } catch (Exception e) {
+            lblMensaje.setText("Error al cargar lista: " + e.getMessage());
+        }
     }
 
     private void actualizarTotal() {
-        double total = 0;
-        for (Bono b : bonoRepo.getBonos()) total += b.getMonto();
-        lblTotal.setText(String.format("S/ %.2f", total));
+        try {
+            double total = 0;
+            for (Bono b : gestionRRHHService.listarBonos()) {
+                total += b.getMonto();
+            }
+            lblTotal.setText(String.format("S/ %.2f", total));
+        } catch (Exception e) {
+            lblTotal.setText("S/ 0.00");
+        }
     }
 }

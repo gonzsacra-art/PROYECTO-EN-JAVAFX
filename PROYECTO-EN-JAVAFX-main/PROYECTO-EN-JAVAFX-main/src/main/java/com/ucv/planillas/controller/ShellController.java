@@ -1,9 +1,8 @@
 package com.ucv.planillas.controller;
 
+import com.ucv.planillas.config.AppContext;
 import com.ucv.planillas.model.Rol;
 import com.ucv.planillas.model.Usuario;
-import com.ucv.planillas.Module.Fabrica;
-import com.ucv.planillas.Module.Navegador;
 import com.ucv.planillas.Module.SesionService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,9 +12,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-// controlador "cascaron": la barra de arriba siempre esta visible,
-// solo cambia lo de adentro (el centro). Asi el usuario elige un modulo
-// y el resto de opciones sigue ahi arriba, sin necesidad de darle "Volver".
+/**
+ * Controlador "cascarón": la barra superior/lateral siempre está visible,
+ * solo cambia el contenido dinámico del panel central (StackPane).
+ */
 public class ShellController {
 
     @FXML private Label lblBienvenida;
@@ -23,27 +23,28 @@ public class ShellController {
     @FXML private Button btnBonos;
     @FXML private StackPane contenido;
 
-    // INYECCION DE DEPENDENCIAS: la fabrica llega desde afuera y se reutiliza
-    // para cargar cada modulo con sus propias dependencias ya resueltas.
-    private final Fabrica fabrica;
-
-    public ShellController(Fabrica fabrica) {
-        this.fabrica = fabrica;
+    // CONSTRUCTOR VACÍO
+    // Obligatorio porque en AppContext haces: "return new ShellController();"
+    public ShellController() {
     }
 
     @FXML
     public void initialize() {
         Usuario usuario = SesionService.getInstancia().getUsuarioActual();
-        lblBienvenida.setText("Bienvenido, " + usuario.getNombreCompleto());
+        if (usuario != null) {
+            lblBienvenida.setText("Bienvenido, " + usuario.getNombreCompleto());
 
-        // el operador no gestiona departamentos ni bonos, solo empleados y horas extra
-        boolean esAdmin = usuario.getRol() == Rol.ADMIN;
-        btnDepartamentos.setVisible(esAdmin);
-        btnDepartamentos.setManaged(esAdmin);
-        btnBonos.setVisible(esAdmin);
-        btnBonos.setManaged(esAdmin);
+            // El operador no gestiona departamentos ni bonos, solo el administrador
+            boolean esAdmin = usuario.getRol() == Rol.ADMIN;
+            btnDepartamentos.setVisible(esAdmin);
+            btnDepartamentos.setManaged(esAdmin);
+            btnBonos.setVisible(esAdmin);
+            btnBonos.setManaged(esAdmin);
+        } else {
+            lblBienvenida.setText("Bienvenido al Sistema");
+        }
 
-        onEmpleados(); // modulo que se muestra apenas se entra
+        onEmpleados(); // Módulo por defecto al ingresar
     }
 
     @FXML
@@ -70,17 +71,30 @@ public class ShellController {
     private void onCerrarSesion() throws Exception {
         SesionService.getInstancia().cerrarSesion();
         Stage stage = (Stage) lblBienvenida.getScene().getWindow();
-        Navegador.irA(stage, "/com/ucv/planillas/login-view.fxml", "Sistema de Gestion de RRHH - UCV", fabrica);
+
+        // Redirigir a la vista de Login limpia sin depender de la clase Navegador antigua
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/ucv/planillas/login-view.fxml"));
+        Parent root = loader.load();
+
+        stage.getScene().setRoot(root);
+        stage.setTitle("Sistema de Gestión de RRHH - UCV");
     }
 
-    // carga un modulo dentro del mismo panel, sin abrir una ventana nueva
+    /**
+     * Carga de forma dinámica un módulo FXML dentro del panel central 'contenido'
+     * inyectando las dependencias necesarias a través de AppContext.
+     */
     private void cargarContenido(String rutaFxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(rutaFxml));
-            loader.setControllerFactory(fabrica);
+
+            // CONECTAMOS LAS SUB-VISTAS CON NUESTRO CONTENEDOR CENTRAL DE DEPENDENCIAS
+            loader.setControllerFactory(type -> AppContext.getInstance().getController(type));
+
             Parent vista = loader.load();
             contenido.getChildren().setAll(vista);
         } catch (Exception e) {
+            System.err.println("Error al cargar el módulo: " + rutaFxml);
             e.printStackTrace();
         }
     }

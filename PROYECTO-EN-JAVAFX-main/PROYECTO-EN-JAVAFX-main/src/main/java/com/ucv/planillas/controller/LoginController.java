@@ -1,11 +1,11 @@
 package com.ucv.planillas.controller;
 
+import com.ucv.planillas.Service.IUsuarioService;
+import com.ucv.planillas.config.AppContext;
 import com.ucv.planillas.model.Usuario;
-import com.ucv.planillas.Module.AutenticacionService;
-import com.ucv.planillas.Module.Fabrica;
-import com.ucv.planillas.Module.Navegador;
-import com.ucv.planillas.Module.SesionService;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -13,43 +13,104 @@ import javafx.stage.Stage;
 
 public class LoginController {
 
-    @FXML private TextField txtUsuario;
-    @FXML private PasswordField txtPassword;
-    @FXML private Label lblMensaje;
+    @FXML
+    private TextField txtUsuario;
 
-    // INYECCION DE DEPENDENCIAS
-    private final AutenticacionService authService;
-    private final Fabrica fabrica;
+    @FXML
+    private PasswordField txtPassword;
 
-    public LoginController(AutenticacionService authService, Fabrica fabrica) {
-        this.authService = authService;
-        this.fabrica = fabrica;
+    @FXML
+    private Label lblMensaje;
+
+
+    private IUsuarioService usuarioService;
+
+
+    public LoginController() {
+        this.usuarioService = AppContext
+                .getInstance()
+                .getUsuarioService();
     }
+
 
     @FXML
     private void onIngresar() {
-        String usuario = txtUsuario.getText().trim();
-        String password = txtPassword.getText();
 
-        if (usuario.isEmpty() || password.isEmpty()) {
-            lblMensaje.setText("Ingresa usuario y contraseña.");
+        String username = txtUsuario.getText().trim();
+        String password = txtPassword.getText().trim();
+
+
+        if(username.isEmpty() || password.isEmpty()){
+
+            lblMensaje.setText(
+                    "Ingrese usuario y contraseña"
+            );
+
             return;
         }
 
-        Usuario u = authService.validarCredenciales(usuario, password);
-        if (u == null) {
-            lblMensaje.setText("Usuario o contraseña incorrectos.");
-            return;
-        }
-
-        // guardamos quien inicio sesion (singleton)
-        SesionService.getInstancia().setUsuarioActual(u);
 
         try {
-            Stage stage = (Stage) txtUsuario.getScene().getWindow();
-            Navegador.irA(stage, "/com/ucv/planillas/shell-view.fxml", "Sistema de Gestion de RRHH - UCV", fabrica);
-        } catch (Exception e) {
-            lblMensaje.setText("No se pudo abrir el panel.");
+
+            Usuario usuario = usuarioService.login(
+                    username,
+                    password
+            );
+
+
+            if(usuario == null){
+
+                lblMensaje.setText(
+                        "Usuario o contraseña incorrectos."
+                );
+
+                return;
+            }
+
+
+            abrirSistema();
+
+
+        } catch(Exception e) {
+            // CAMBIA ESTO TEMPORALMENTE:
+            e.printStackTrace(); // Esto imprimirá el error real en la consola de tu IDE (abajo)
+            lblMensaje.setText("Detalle del Error: " + e.getMessage());
         }
+
     }
+
+
+
+    private void abrirSistema() throws Exception {
+
+
+        FXMLLoader loader =
+                new FXMLLoader(
+                        getClass()
+                                .getResource(
+                                        "/com/ucv/planillas/shell-view.fxml"
+                                )
+                );
+
+
+        Scene scene =
+                new Scene(loader.load());
+
+
+        Stage stage =
+                (Stage) txtUsuario
+                        .getScene()
+                        .getWindow();
+
+
+        stage.setScene(scene);
+
+        stage.setTitle(
+                "Sistema de Gestión de RRHH"
+        );
+
+        stage.show();
+
+    }
+
 }

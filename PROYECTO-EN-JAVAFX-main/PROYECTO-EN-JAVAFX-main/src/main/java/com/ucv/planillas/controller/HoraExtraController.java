@@ -1,10 +1,8 @@
 package com.ucv.planillas.controller;
 
+import com.ucv.planillas.Service.IGestionRRHHService;
 import com.ucv.planillas.model.Empleado;
 import com.ucv.planillas.model.HoraExtra;
-import com.ucv.planillas.Module.EmpleadoRepositorio;
-import com.ucv.planillas.Module.HoraExtraRepositorio;
-import com.ucv.planillas.Module.Planilla;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,9 +10,6 @@ import javafx.scene.control.*;
 
 import java.time.LocalDate;
 
-// aqui el bono por horas extra es AUTOMATICO: el usuario solo dice cuantas horas
-// trabajo, y el sistema calcula el valor de la hora (segun el sueldo) y el pago
-// (segun la ley peruana: 25% extra en las primeras 2 horas, 35% en las siguientes)
 public class HoraExtraController {
 
     @FXML private ComboBox<String> cmbEmpleado;
@@ -26,21 +21,16 @@ public class HoraExtraController {
     @FXML private ListView<String> listaHoras;
     @FXML private Label lblMensaje;
 
-    // INYECCION DE DEPENDENCIAS
-    private final HoraExtraRepositorio horaExtraRepo;
-    private final EmpleadoRepositorio empleadoRepo;
-    private final Planilla planilla;
+    private final IGestionRRHHService gestionRRHHService;
 
-    public HoraExtraController(HoraExtraRepositorio horaExtraRepo, EmpleadoRepositorio empleadoRepo, Planilla planilla) {
-        this.horaExtraRepo = horaExtraRepo;
-        this.empleadoRepo = empleadoRepo;
-        this.planilla = planilla;
+    public HoraExtraController(IGestionRRHHService gestionRRHHService) {
+        this.gestionRRHHService = gestionRRHHService;
     }
 
     @FXML
     public void initialize() {
         ObservableList<String> nombres = FXCollections.observableArrayList();
-        for (Empleado e : empleadoRepo.getEmpleados()) nombres.add(e.getNombre());
+        for (Empleado e : gestionRRHHService.listar()) nombres.add(e.getNombre());
         cmbEmpleado.setItems(nombres);
         if (!nombres.isEmpty()) cmbEmpleado.setValue(nombres.get(0));
 
@@ -54,14 +44,14 @@ public class HoraExtraController {
     }
 
     private void actualizarEstimado() {
-        Empleado empleado = empleadoRepo.buscarPorNombre(cmbEmpleado.getValue());
+        Empleado empleado = gestionRRHHService.buscarPorNombre(cmbEmpleado.getValue());
         if (empleado == null) {
             lblValorHora.setText("S/ 0.00");
             lblPagoEstimado.setText("S/ 0.00");
             return;
         }
 
-        double valorHora = planilla.calcularValorHora(empleado);
+        double valorHora = gestionRRHHService.calcularValorHora(empleado);
         lblValorHora.setText(String.format("S/ %.2f", valorHora));
 
         try {
@@ -85,7 +75,7 @@ public class HoraExtraController {
         try {
             horas = Integer.parseInt(txtHoras.getText());
         } catch (NumberFormatException e) {
-            lblMensaje.setText("Las horas deben ser un numero.");
+            lblMensaje.setText("Las horas deben ser un número.");
             return;
         }
 
@@ -94,20 +84,29 @@ public class HoraExtraController {
             return;
         }
 
-        Empleado empleado = empleadoRepo.buscarPorNombre(nombreEmp);
-        double valorHora = planilla.calcularValorHora(empleado); // calculado, no lo escribe el usuario
+        Empleado empleado = gestionRRHHService.buscarPorNombre(nombreEmp);
+        if (empleado == null) return;
 
-        HoraExtra nueva = new HoraExtra(horaExtraRepo.siguienteId(), empleado, dpFecha.getValue(),
-                horas, valorHora, txtMotivo.getText());
-        horaExtraRepo.agregar(nueva);
+        double valorHora = gestionRRHHService.calcularValorHora(empleado);
+
+        HoraExtra nueva = new HoraExtra(
+                java.util.UUID.randomUUID().toString().substring(0, 8),
+                empleado,
+                dpFecha.getValue(),
+                horas,
+                valorHora,
+                txtMotivo.getText()
+        );
+
+        gestionRRHHService.registrarHoraExtra(nueva);
         actualizarLista();
         limpiarCampos();
-        lblMensaje.setText("Registrado. El bono se calculo automaticamente segun ley.");
+        lblMensaje.setText("Registrado. El bono se calculó automáticamente según ley.");
     }
 
     private void actualizarLista() {
         ObservableList<String> items = FXCollections.observableArrayList();
-        for (HoraExtra h : horaExtraRepo.getRegistros()) items.add(h.toString());
+        for (HoraExtra h : gestionRRHHService.listarHorasExtra()) items.add(h.toString());
         listaHoras.setItems(items);
     }
 

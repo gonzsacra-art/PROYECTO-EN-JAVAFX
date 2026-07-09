@@ -1,6 +1,5 @@
 package com.ucv.planillas.Util;
 
-import com.ucv.planillas.Module.Fabrica;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -10,19 +9,26 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // la Fabrica es el contenedor de inyeccion de dependencias de toda la app
-        Fabrica fabrica = new Fabrica();
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/ucv/planillas/login-view.fxml"));
-        loader.setControllerFactory(fabrica);
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/ucv/planillas/login-view.fxml")
+        );
 
         Scene escena = new Scene(loader.load());
 
-        stage.setTitle("Sistema de Gestion de RRHH - UCV");
+        stage.setTitle("Sistema de Gestión de RRHH - UCV");
         stage.setScene(escena);
         stage.setMinWidth(750);
         stage.setMinHeight(500);
+        stage.setResizable(true);
         stage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        // Cierra correctamente la conexión con la base de datos
+        com.ucv.planillas.config.AppContext.getInstance().destroy();
     }
 
     public static void main(String[] args) {

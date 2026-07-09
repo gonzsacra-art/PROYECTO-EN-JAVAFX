@@ -1,14 +1,12 @@
 package com.ucv.planillas.controller;
 
+import com.ucv.planillas.Service.IGestionRRHHService;
 import com.ucv.planillas.model.Empleado;
-import com.ucv.planillas.Module.EmpleadoRepositorio;
-import com.ucv.planillas.Module.Planilla;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-// controlador de la pantalla de empleados
 public class EmpleadoController {
 
     @FXML private TextField txtNombre;
@@ -21,14 +19,11 @@ public class EmpleadoController {
 
     @FXML private ListView<String> listaEmpleados;
 
-    // INYECCION DE DEPENDENCIAS: el repositorio (datos compartidos) y la planilla (calculos)
-    // llegan armados desde la Fabrica, este controlador no los crea por su cuenta
-    private final EmpleadoRepositorio repositorio;
-    private final Planilla planilla;
+    // INYECCIÓN DEL SERVICIO CENTRALIZADO
+    private final IGestionRRHHService gestionRRHHService;
 
-    public EmpleadoController(EmpleadoRepositorio repositorio, Planilla planilla) {
-        this.repositorio = repositorio;
-        this.planilla = planilla;
+    public EmpleadoController(IGestionRRHHService gestionRRHHService) {
+        this.gestionRRHHService = gestionRRHHService;
     }
 
     @FXML
@@ -40,7 +35,7 @@ public class EmpleadoController {
 
     @FXML
     private void onAgregar() {
-        if (txtNombre.getText().isEmpty()) {
+        if (txtNombre.getText().trim().isEmpty()) {
             lblMensaje.setText("Falta el nombre!");
             return;
         }
@@ -49,15 +44,27 @@ public class EmpleadoController {
         try {
             sueldo = Double.parseDouble(txtSueldo.getText());
         } catch (NumberFormatException e) {
-            lblMensaje.setText("El sueldo debe ser un numero!");
+            lblMensaje.setText("El sueldo debe ser un número!");
             return;
         }
 
-        Empleado nuevo = new Empleado(txtNombre.getText(), sueldo, cmbRegimen.getValue(), planilla);
-        repositorio.agregar(nuevo);
-        actualizarLista();
-        limpiarCampos();
-        lblMensaje.setText("Empleado agregado!");
+        try {
+            // Creamos el empleado sin pasar el objeto Planilla manual,
+            // ya que el Service se encarga de inyectarlo/gestionarlo al mapear.
+            Empleado nuevo = new Empleado();
+            nuevo.setId(java.util.UUID.randomUUID().toString().substring(0, 8)); // Genera un ID corto único temporal
+            nuevo.setNombre(txtNombre.getText().trim());
+            nuevo.setCargo("Operario"); // Cargo por defecto
+            nuevo.setSueldo(sueldo);
+            nuevo.setRegimen(cmbRegimen.getValue());
+
+            gestionRRHHService.crear(nuevo);
+            actualizarLista();
+            limpiarCampos();
+            lblMensaje.setText("Empleado agregado!");
+        } catch (Exception e) {
+            lblMensaje.setText("Error: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -65,17 +72,25 @@ public class EmpleadoController {
         int idx = listaEmpleados.getSelectionModel().getSelectedIndex();
         if (idx < 0) return;
 
-        Empleado e = repositorio.getEmpleados().get(idx);
-        lblDescuento.setText(String.format("S/ %.2f", e.getDescuento()));
-        lblNeto.setText(String.format("S/ %.2f", e.getNeto()));
+        try {
+            Empleado e = gestionRRHHService.listar().get(idx);
+            lblDescuento.setText(String.format("S/ %.2f", e.getDescuento()));
+            lblNeto.setText(String.format("S/ %.2f", e.getNeto()));
+        } catch (Exception e) {
+            lblMensaje.setText("Error al calcular: " + e.getMessage());
+        }
     }
 
     private void actualizarLista() {
-        ObservableList<String> items = FXCollections.observableArrayList();
-        for (Empleado e : repositorio.getEmpleados()) {
-            items.add(e.getNombre() + " - S/" + e.getSueldo() + " [" + e.getRegimen() + "]");
+        try {
+            ObservableList<String> items = FXCollections.observableArrayList();
+            for (Empleado e : gestionRRHHService.listar()) {
+                items.add(e.getNombre() + " - S/" + e.getSueldo() + " [" + e.getRegimen() + "]");
+            }
+            listaEmpleados.setItems(items);
+        } catch (Exception e) {
+            lblMensaje.setText("Error al cargar lista: " + e.getMessage());
         }
-        listaEmpleados.setItems(items);
     }
 
     private void limpiarCampos() {
