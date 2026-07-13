@@ -4,6 +4,12 @@ module com.ucv.planillas {
     requires javafx.fxml;
     requires java.sql;
 
+    // ===== CORRECCIÓN CLAVE =====
+    // Sin esta línea, el módulo del driver JDBC de SQL Server NO se resuelve
+    // al ejecutar la app modular y DriverManager lanza:
+    // "No suitable driver found for jdbc:sqlserver://..."
+    requires com.microsoft.sqlserver.jdbc;
+
     // Paquete principal
     opens com.ucv.planillas to javafx.fxml;
 
