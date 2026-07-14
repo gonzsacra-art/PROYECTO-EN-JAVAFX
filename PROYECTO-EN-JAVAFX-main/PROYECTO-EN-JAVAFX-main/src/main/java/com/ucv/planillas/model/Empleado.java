@@ -40,12 +40,9 @@ public class Empleado {
                     Planilla planilla) {
 
         this("", nombre, "", sueldo, regimen, planilla);
-
     }
 
-    //=========================
-    // GETTERS Y SETTERS
-    //=========================
+    // getters y setters
 
     public String getId() {
         return id;
@@ -95,25 +92,19 @@ public class Empleado {
         this.planilla = planilla;
     }
 
-    //=========================
-    // CÁLCULOS
-    //=========================
+    // Zona de los calculos
 
     public double getDescuento() {
-
         if (planilla == null) {
             return 0;
         }
-
         return planilla.calcularDescuento(this);
     }
 
     public double getNeto() {
-
         if (planilla == null) {
             return sueldo;
         }
-
         return planilla.calcularNeto(this);
     }
 
@@ -121,5 +112,4 @@ public class Empleado {
     public String toString() {
         return nombre;
     }
-
 }

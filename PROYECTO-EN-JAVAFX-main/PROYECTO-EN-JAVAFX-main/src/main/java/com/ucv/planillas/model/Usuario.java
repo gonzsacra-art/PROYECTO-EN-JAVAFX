@@ -4,7 +4,7 @@ package com.ucv.planillas.model;
 public class Usuario {
 
     private String username;
-    private String password; // nota: en un proyecto real esto NO se guarda asi, se usaria un hash
+    private String password;
     private String nombreCompleto;
     private Rol rol;
 

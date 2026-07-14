@@ -29,10 +29,15 @@ public class HoraExtraController {
 
     @FXML
     public void initialize() {
-        ObservableList<String> nombres = FXCollections.observableArrayList();
-        for (Empleado e : gestionRRHHService.listar()) nombres.add(e.getNombre());
-        cmbEmpleado.setItems(nombres);
-        if (!nombres.isEmpty()) cmbEmpleado.setValue(nombres.get(0));
+        // nota para todos los del grupo:  si la BD falla aquí, antes la vista entera no cargaba
+        try {
+            ObservableList<String> nombres = FXCollections.observableArrayList();
+            for (Empleado e : gestionRRHHService.listar()) nombres.add(e.getNombre());
+            cmbEmpleado.setItems(nombres);
+            if (!nombres.isEmpty()) cmbEmpleado.setValue(nombres.get(0));
+        } catch (Exception e) {
+            lblMensaje.setText("Error al cargar empleados: " + e.getMessage());
+        }
 
         dpFecha.setValue(LocalDate.now());
 
@@ -56,6 +61,10 @@ public class HoraExtraController {
 
         try {
             int horas = Integer.parseInt(txtHoras.getText());
+            if (horas <= 0) {
+                lblPagoEstimado.setText("S/ 0.00");
+                return;
+            }
             HoraExtra simulada = new HoraExtra("", empleado, LocalDate.now(), horas, valorHora, "");
             lblPagoEstimado.setText(String.format("S/ %.2f", simulada.calcularPago()));
         } catch (NumberFormatException e) {
@@ -76,6 +85,12 @@ public class HoraExtraController {
             horas = Integer.parseInt(txtHoras.getText());
         } catch (NumberFormatException e) {
             lblMensaje.setText("Las horas deben ser un número.");
+            return;
+        }
+
+        // no se aceptan hotras negativas
+        if (horas <= 0) {
+            lblMensaje.setText("Las horas deben ser mayores que cero.");
             return;
         }
 

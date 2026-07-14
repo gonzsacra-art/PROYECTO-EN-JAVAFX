@@ -3,6 +3,7 @@ package com.ucv.planillas.controller;
 import com.ucv.planillas.Service.IUsuarioService;
 import com.ucv.planillas.config.AppContext;
 import com.ucv.planillas.model.Usuario;
+import com.ucv.planillas.Module.SesionService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -22,9 +23,7 @@ public class LoginController {
     @FXML
     private Label lblMensaje;
 
-
-    private IUsuarioService usuarioService;
-
+    private final IUsuarioService usuarioService;
 
     public LoginController() {
         this.usuarioService = AppContext
@@ -32,85 +31,56 @@ public class LoginController {
                 .getUsuarioService();
     }
 
-
     @FXML
     private void onIngresar() {
 
         String username = txtUsuario.getText().trim();
         String password = txtPassword.getText().trim();
 
-
-        if(username.isEmpty() || password.isEmpty()){
-
-            lblMensaje.setText(
-                    "Ingrese usuario y contraseña"
-            );
-
+        if (username.isEmpty() || password.isEmpty()) {
+            lblMensaje.setText("Ingrese usuario y contraseña");
             return;
         }
 
-
         try {
+            Usuario usuario = usuarioService.login(username, password);
 
-            Usuario usuario = usuarioService.login(
-                    username,
-                    password
-            );
-
-
-            if(usuario == null){
-
-                lblMensaje.setText(
-                        "Usuario o contraseña incorrectos."
-                );
-
+            if (usuario == null) {
+                lblMensaje.setText("Usuario o contraseña incorrectos.");
                 return;
             }
 
+            // CORRECCIÓN DEL BUG DE ROLES:
+            // Antes nunca se guardaba el usuario en SesionService, por eso
+            // en ShellController.initialize() getUsuarioActual() devolvía
+            // null y los botones de ADMIN quedaban visibles para TODOS
+            // (el operador veía Departamentos y Bonos).
+            SesionService.getInstancia().setUsuarioActual(usuario);
 
             abrirSistema();
 
-
-        } catch(Exception e) {
-            // CAMBIA ESTO TEMPORALMENTE:
-            e.printStackTrace(); // Esto imprimirá el error real en la consola de tu IDE (abajo)
-            lblMensaje.setText("Detalle del Error: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            lblMensaje.setText("Error: " + e.getMessage());
         }
-
     }
-
-
 
     private void abrirSistema() throws Exception {
 
-
-        FXMLLoader loader =
-                new FXMLLoader(
-                        getClass()
-                                .getResource(
-                                        "/com/ucv/planillas/shell-view.fxml"
-                                )
-                );
-
-
-        Scene scene =
-                new Scene(loader.load());
-
-
-        Stage stage =
-                (Stage) txtUsuario
-                        .getScene()
-                        .getWindow();
-
-
-        stage.setScene(scene);
-
-        stage.setTitle(
-                "Sistema de Gestión de RRHH"
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/ucv/planillas/shell-view.fxml")
         );
 
+        // Usamos la misma fábrica de AppContext para mantener la
+        // inyección de dependencias consistente en toda la app.
+        loader.setControllerFactory(type -> AppContext.getInstance().getController(type));
+
+        Scene scene = new Scene(loader.load());
+
+        Stage stage = (Stage) txtUsuario.getScene().getWindow();
+
+        stage.setScene(scene);
+        stage.setTitle("Sistema de Gestión de RRHH");
         stage.show();
-
     }
-
 }

@@ -22,7 +22,6 @@ public class BonoController {
     // INYECCIÓN DEL SERVICIO CENTRALIZADO
     private final IGestionRRHHService gestionRRHHService;
 
-    // El constructor ahora recibe el servicio único desde AppContext
     public BonoController(IGestionRRHHService gestionRRHHService) {
         this.gestionRRHHService = gestionRRHHService;
     }
@@ -31,7 +30,6 @@ public class BonoController {
     public void initialize() {
         try {
             ObservableList<String> nombres = FXCollections.observableArrayList();
-            // Listamos los empleados desde la base de datos a través del servicio
             for (Empleado e : gestionRRHHService.listar()) {
                 nombres.add(e.getNombre());
             }
@@ -64,15 +62,19 @@ public class BonoController {
             return;
         }
 
+        // CORRECCIÓN: antes se aceptaban montos negativos o cero
+        if (monto <= 0) {
+            lblMensaje.setText("El monto debe ser mayor que cero.");
+            return;
+        }
+
         try {
-            // Buscamos al empleado activo usando el servicio
             Empleado empleado = gestionRRHHService.buscarPorNombre(nombreEmp);
             if (empleado == null) {
                 lblMensaje.setText("No se encontró al empleado seleccionado.");
                 return;
             }
 
-            // Creamos el nuevo bono asignándole un ID único temporal en texto
             Bono nuevo = new Bono(
                     java.util.UUID.randomUUID().toString().substring(0, 8),
                     empleado,
@@ -81,7 +83,6 @@ public class BonoController {
                     LocalDate.now()
             );
 
-            // Registramos el bono en el servicio
             gestionRRHHService.registrarBono(nuevo);
 
             actualizarLista();

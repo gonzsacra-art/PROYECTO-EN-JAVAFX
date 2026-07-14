@@ -12,7 +12,7 @@ public class HoraExtra {
     private double valorHoraBase;
     private String motivo;
 
-    // segun la ley peruana: las primeras 2 horas se pagan al 25% extra, de ahi en adelante al 35%
+    // las primeras 2 horas se pagan al 25% extra, de ahi en adelante al 35%
     private static final double TASA_PRIMERAS_2H = 1.25;
     private static final double TASA_SIGUIENTES = 1.35;
 

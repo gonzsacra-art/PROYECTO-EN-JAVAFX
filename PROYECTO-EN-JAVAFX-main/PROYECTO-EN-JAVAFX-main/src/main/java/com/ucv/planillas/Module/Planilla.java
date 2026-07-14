@@ -22,7 +22,7 @@ public class Planilla {
     }
 
     // valor de la hora de trabajo, para calcular el bono de horas extra automaticamente
-    // aproximacion comun en Peru: 30 dias al mes, 8 horas por dia
+    // 30 dias al mes, 8 horas por dia
     public double calcularValorHora(Empleado e) {
         return e.getSueldo() / 30.0 / 8.0;
     }

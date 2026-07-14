@@ -40,7 +40,7 @@ public class AppContext {
         // Conexión a SQL Server
         dataBaseConfig = new DataBaseConfig();
 
-        // Empleados (GestionRRHH)
+        // Empleados
         gestionRRHHRepository = new GestionRRHHRepository(dataBaseConfig);
         gestionRRHHService = new GestionRRHHService(gestionRRHHRepository);
 
@@ -56,10 +56,6 @@ public class AppContext {
         return instance;
     }
 
-    /**
-     * MÉTODO CLAVE: Fábrica dinámica de controladores para JavaFX.
-     * Resuelve los errores de "cannot find symbol" en tus vistas FXML y en el Navegador.
-     */
     public Object getController(Class<?> type) {
         if (type == EmpleadoController.class) {
             return new EmpleadoController(gestionRRHHService);
@@ -88,23 +84,17 @@ public class AppContext {
         }
     }
 
-    /**
-     * Devuelve el servicio de empleados.
-     */
+     //Devuelve el servicio de empleados.
+
     public IGestionRRHHService getGestionRRHHService() {
         return gestionRRHHService;
     }
-
-    /**
-     * Devuelve el servicio de usuarios.
-     */
     public IUsuarioService getUsuarioService() {
         return usuarioService;
     }
 
-    /**
-     * Libera los recursos de la aplicación.
-     */
+    //Libera los recursos de la aplicación.
+
     public void destroy() {
         if (dataBaseConfig != null) {
             dataBaseConfig.close();

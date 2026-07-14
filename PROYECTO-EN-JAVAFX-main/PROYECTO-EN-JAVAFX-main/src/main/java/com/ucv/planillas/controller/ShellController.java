@@ -15,6 +15,10 @@ import javafx.stage.Stage;
 /**
  * Controlador "cascarón": la barra superior/lateral siempre está visible,
  * solo cambia el contenido dinámico del panel central (StackPane).
+ *
+ * ACCESOS POR ROL:
+ *  - ADMIN:    Empleados, Departamentos, Bonos, Horas Extra (todo)
+ *  - OPERADOR: Empleados y Horas Extra (solo 2 accesos)
  */
 public class ShellController {
 
@@ -23,26 +27,37 @@ public class ShellController {
     @FXML private Button btnBonos;
     @FXML private StackPane contenido;
 
-    // CONSTRUCTOR VACÍO
     // Obligatorio porque en AppContext haces: "return new ShellController();"
     public ShellController() {
+    }
+
+    /**
+     * Devuelve true solo si hay una sesión activa y el usuario es ADMIN.
+     * Si no hay sesión (null), se asume el rol MÁS restrictivo por seguridad.
+     */
+    private boolean esAdmin() {
+        Usuario usuario = SesionService.getInstancia().getUsuarioActual();
+        return usuario != null && usuario.getRol() == Rol.ADMIN;
     }
 
     @FXML
     public void initialize() {
         Usuario usuario = SesionService.getInstancia().getUsuarioActual();
         if (usuario != null) {
-            lblBienvenida.setText("Bienvenido, " + usuario.getNombreCompleto());
-
-            // El operador no gestiona departamentos ni bonos, solo el administrador
-            boolean esAdmin = usuario.getRol() == Rol.ADMIN;
-            btnDepartamentos.setVisible(esAdmin);
-            btnDepartamentos.setManaged(esAdmin);
-            btnBonos.setVisible(esAdmin);
-            btnBonos.setManaged(esAdmin);
+            lblBienvenida.setText("Bienvenido, " + usuario.getNombreCompleto()
+                    + " (" + usuario.getRol() + ")");
         } else {
             lblBienvenida.setText("Bienvenido al Sistema");
         }
+
+        // El operador no gestiona departamentos ni bonos, solo el administrador.
+        // OJO: ahora si usuario == null los botones también se OCULTAN
+        // (antes el 'else' los dejaba visibles para todos).
+        boolean admin = esAdmin();
+        btnDepartamentos.setVisible(admin);
+        btnDepartamentos.setManaged(admin);
+        btnBonos.setVisible(admin);
+        btnBonos.setManaged(admin);
 
         onEmpleados(); // Módulo por defecto al ingresar
     }
@@ -54,11 +69,15 @@ public class ShellController {
 
     @FXML
     private void onDepartamentos() {
+        // DEFENSA EN PROFUNDIDAD: aunque el botón esté oculto,
+        // verificamos el rol antes de cargar el módulo.
+        if (!esAdmin()) return;
         cargarContenido("/com/ucv/planillas/departamento-view.fxml");
     }
 
     @FXML
     private void onBonos() {
+        if (!esAdmin()) return;
         cargarContenido("/com/ucv/planillas/bono-view.fxml");
     }
 
@@ -72,8 +91,11 @@ public class ShellController {
         SesionService.getInstancia().cerrarSesion();
         Stage stage = (Stage) lblBienvenida.getScene().getWindow();
 
-        // Redirigir a la vista de Login limpia sin depender de la clase Navegador antigua
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/ucv/planillas/login-view.fxml"));
+
+        // También aquí usamos la fábrica para mantener la DI consistente
+        loader.setControllerFactory(type -> AppContext.getInstance().getController(type));
+
         Parent root = loader.load();
 
         stage.getScene().setRoot(root);
