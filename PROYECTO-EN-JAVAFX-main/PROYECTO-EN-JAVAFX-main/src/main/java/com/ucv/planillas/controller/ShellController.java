@@ -1,25 +1,16 @@
 package com.ucv.planillas.controller;
 
-import com.ucv.planillas.config.AppContext;
+import com.ucv.planillas.Module.Navegador;
+import com.ucv.planillas.Module.SesionService;
 import com.ucv.planillas.model.Rol;
 import com.ucv.planillas.model.Usuario;
-import com.ucv.planillas.Module.SesionService;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-/**
- * Controlador "cascarón": la barra superior/lateral siempre está visible,
- * solo cambia el contenido dinámico del panel central (StackPane).
- *
- * ACCESOS POR ROL:
- *  - ADMIN:    Empleados, Departamentos, Bonos, Horas Extra (todo)
- *  - OPERADOR: Empleados y Horas Extra (solo 2 accesos)
- */
 public class ShellController {
 
     @FXML private Label lblBienvenida;
@@ -27,22 +18,22 @@ public class ShellController {
     @FXML private Button btnBonos;
     @FXML private StackPane contenido;
 
-    // Obligatorio porque en AppContext haces: "return new ShellController();"
-    public ShellController() {
+    private final SesionService sesionService;
+    private final Navegador navegador;
+
+    public ShellController(SesionService sesionService, Navegador navegador) {
+        this.sesionService = sesionService;
+        this.navegador = navegador;
     }
 
-    /**
-     * Devuelve true solo si hay una sesión activa y el usuario es ADMIN.
-     * Si no hay sesión (null), se asume el rol MÁS restrictivo por seguridad.
-     */
     private boolean esAdmin() {
-        Usuario usuario = SesionService.getInstancia().getUsuarioActual();
+        Usuario usuario = sesionService.getUsuarioActual();
         return usuario != null && usuario.getRol() == Rol.ADMIN;
     }
 
     @FXML
     public void initialize() {
-        Usuario usuario = SesionService.getInstancia().getUsuarioActual();
+        Usuario usuario = sesionService.getUsuarioActual();
         if (usuario != null) {
             lblBienvenida.setText("Bienvenido, " + usuario.getNombreCompleto()
                     + " (" + usuario.getRol() + ")");
@@ -50,16 +41,15 @@ public class ShellController {
             lblBienvenida.setText("Bienvenido al Sistema");
         }
 
-        // El operador no gestiona departamentos ni bonos, solo el administrador.
-        // OJO: ahora si usuario == null los botones también se OCULTAN
-        // (antes el 'else' los dejaba visibles para todos).
+        // El operador no gestiona departamentos ni bonos, solo el administrador
+        // Si usuario == null los botones también se OCULTAN.
         boolean admin = esAdmin();
         btnDepartamentos.setVisible(admin);
         btnDepartamentos.setManaged(admin);
         btnBonos.setVisible(admin);
         btnBonos.setManaged(admin);
 
-        onEmpleados(); // Módulo por defecto al ingresar
+        onEmpleados();
     }
 
     @FXML
@@ -69,8 +59,7 @@ public class ShellController {
 
     @FXML
     private void onDepartamentos() {
-        // DEFENSA EN PROFUNDIDAD: aunque el botón esté oculto,
-        // verificamos el rol antes de cargar el módulo.
+
         if (!esAdmin()) return;
         cargarContenido("/com/ucv/planillas/departamento-view.fxml");
     }
@@ -88,32 +77,19 @@ public class ShellController {
 
     @FXML
     private void onCerrarSesion() throws Exception {
-        SesionService.getInstancia().cerrarSesion();
+        sesionService.cerrarSesion();
         Stage stage = (Stage) lblBienvenida.getScene().getWindow();
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/ucv/planillas/login-view.fxml"));
-
-        // También aquí usamos la fábrica para mantener la DI consistente
-        loader.setControllerFactory(type -> AppContext.getInstance().getController(type));
-
-        Parent root = loader.load();
-
-        stage.getScene().setRoot(root);
-        stage.setTitle("Sistema de Gestión de RRHH - UCV");
+        navegador.cambiarRaiz(
+                stage,
+                "/com/ucv/planillas/login-view.fxml",
+                "Sistema de Gestión de RRHH - UCV"
+        );
     }
 
-    /**
-     * Carga de forma dinámica un módulo FXML dentro del panel central 'contenido'
-     * inyectando las dependencias necesarias a través de AppContext.
-     */
     private void cargarContenido(String rutaFxml) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(rutaFxml));
-
-            // CONECTAMOS LAS SUB-VISTAS CON NUESTRO CONTENEDOR CENTRAL DE DEPENDENCIAS
-            loader.setControllerFactory(type -> AppContext.getInstance().getController(type));
-
-            Parent vista = loader.load();
+            Parent vista = navegador.cargarVista(rutaFxml);
             contenido.getChildren().setAll(vista);
         } catch (Exception e) {
             System.err.println("Error al cargar el módulo: " + rutaFxml);

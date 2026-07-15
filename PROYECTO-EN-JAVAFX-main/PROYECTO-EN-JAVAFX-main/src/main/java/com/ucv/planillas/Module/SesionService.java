@@ -2,29 +2,28 @@ package com.ucv.planillas.Module;
 
 import com.ucv.planillas.model.Usuario;
 
-// PATRON SINGLETON
-// guarda quien inicio sesion, solo puede existir UNA sesion activa a la vez
+
+ //Guarda quién inició sesión.
+
+ // AHORA: es una clase normal. AppContext crea UNA sola instancia y la
+ // INYECTA POR CONSTRUCTOR a los controladores que la necesitan
+ //(LoginController y ShellController). Sigue existiendo una única sesión
+ //activa, pero eso lo garantiza el contenedor de dependencias, no la clase.
+
 public class SesionService {
 
-    private static SesionService instancia;
     private Usuario usuarioActual;
 
-    // constructor privado, nadie de afuera puede hacer "new SesionService()"
-    private SesionService() {
+    public SesionService() {
     }
 
-    public static SesionService getInstancia() {
-        if (instancia == null) {
-            instancia = new SesionService();
-        }
-        return instancia;
+    public Usuario getUsuarioActual() {
+        return usuarioActual;
     }
 
-    public Usuario getUsuarioActual()
-    { return usuarioActual; }
-
-    public void setUsuarioActual(Usuario usuario)
-    { this.usuarioActual = usuario; }
+    public void setUsuarioActual(Usuario usuario) {
+        this.usuarioActual = usuario;
+    }
 
     public void cerrarSesion() {
         this.usuarioActual = null;

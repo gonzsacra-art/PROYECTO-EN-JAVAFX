@@ -1,31 +1,36 @@
 package com.ucv.planillas.Util;
 
+import com.ucv.planillas.config.AppContext;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
+    private AppContext appContext;
+
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/com/ucv/planillas/login-view.fxml")
-        );
+        // Única creación del contenedor de dependencias
+        appContext = new AppContext();
 
-        Scene escena = new Scene(loader.load());
-
-        stage.setTitle("Sistema de Gestión de RRHH - UCV");
-        stage.setScene(escena);
         stage.setMinWidth(750);
         stage.setMinHeight(500);
         stage.setResizable(true);
+
+        appContext.getNavegador().irA(
+                stage,
+                "/com/ucv/planillas/login-view.fxml",
+                "Sistema de Gestión de RRHH - UCV"
+        );
+
         stage.show();
     }
 
     @Override
     public void stop() throws Exception {
         super.stop();
-        com.ucv.planillas.config.AppContext.getInstance().destroy();
+        if (appContext != null) {
+            appContext.destroy();
+        }
     }
 }

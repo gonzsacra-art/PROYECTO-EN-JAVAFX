@@ -2,7 +2,7 @@ package com.ucv.planillas.model;
 
 import java.time.LocalDate;
 
-// bonos adicionales que se le pueden dar a un empleado
+// bonos adicionales que se le pueden dar a un empleadoo
 public class Bono {
 
     public enum TipoBono {

@@ -6,8 +6,8 @@ import com.ucv.planillas.model.Empleado;
 // se inyecta en el Empleado desde afuera
 public class Planilla {
 
-    private double tasaAFP = 0.12;  // 12%
-    private double tasaONP = 0.13;  // 13%
+    private double tasaAFP = 0.12;
+    private double tasaONP = 0.13;
 
     public double calcularDescuento(Empleado e) {
         if (e.getRegimen().equals("AFP")) {

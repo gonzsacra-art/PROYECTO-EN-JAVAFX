@@ -8,8 +8,9 @@ import com.ucv.planillas.repository.GestionRRHHRepository;
 import com.ucv.planillas.repository.IGestionRRHHRepository;
 import com.ucv.planillas.repository.IUsuarioRepository;
 import com.ucv.planillas.repository.UsuarioRepository;
+import com.ucv.planillas.Module.Navegador;
+import com.ucv.planillas.Module.SesionService;
 
-// IMPORTAMOS LOS CONTROLADORES PARA PODER INSTANCIARLOS AQUÍ
 import com.ucv.planillas.controller.EmpleadoController;
 import com.ucv.planillas.controller.BonoController;
 import com.ucv.planillas.controller.DepartamentoController;
@@ -17,44 +18,49 @@ import com.ucv.planillas.controller.HoraExtraController;
 import com.ucv.planillas.controller.ShellController;
 import com.ucv.planillas.controller.LoginController;
 
-public class AppContext {
 
-    private static AppContext instance;
+  //Contenedor de INYECCIÓN DE DEPENDENCIAS
+// cosas a saber aqui: es una clase normal con un constructor publico
+//MainApp crea una sola insancia una vez que se arraca la app y tofdo lo demas recibe sus dependencias
+//otra cosa mas. por constructor. nadie en el proyecto accede a estado global estatico.
+
+public class AppContext {
 
     // Configuración de la base de datos
     private final DataBaseConfig dataBaseConfig;
 
-    // Repository de Empleados
+    // Repositories
     private final IGestionRRHHRepository gestionRRHHRepository;
-
-    // Service de Empleados
-    private final IGestionRRHHService gestionRRHHService;
-
-    // Repository de Usuarios
     private final IUsuarioRepository usuarioRepository;
 
-    // Service de Usuarios
+    // Services
+    private final IGestionRRHHService gestionRRHHService;
     private final IUsuarioService usuarioService;
 
-    private AppContext() {
+    private final SesionService sesionService;
+
+    private final Navegador navegador;
+
+    public AppContext() {
         // Conexión a SQL Server
-        dataBaseConfig = new DataBaseConfig();
+        this.dataBaseConfig = new DataBaseConfig();
 
         // Empleados
-        gestionRRHHRepository = new GestionRRHHRepository(dataBaseConfig);
-        gestionRRHHService = new GestionRRHHService(gestionRRHHRepository);
+        this.gestionRRHHRepository = new GestionRRHHRepository(dataBaseConfig);
+        this.gestionRRHHService = new GestionRRHHService(gestionRRHHRepository);
 
         // Usuarios
-        usuarioRepository = new UsuarioRepository(dataBaseConfig);
-        usuarioService = new UsuarioService(usuarioRepository);
-    }
+        this.usuarioRepository = new UsuarioRepository(dataBaseConfig);
+        this.usuarioService = new UsuarioService(usuarioRepository);
 
-    public static AppContext getInstance() {
-        if (instance == null) {
-            instance = new AppContext();
-        }
-        return instance;
+        // Sesión única de la aplicación
+        this.sesionService = new SesionService();
+
+        // El navegador recibe la fábrica de controladores por constructor.
+        this.navegador = new Navegador(this::getController);
     }
+//fab de controladores
+    // se hace la injecion por constructor de todos los controladores de javafx
 
     public Object getController(Class<?> type) {
         if (type == EmpleadoController.class) {
@@ -70,13 +76,12 @@ public class AppContext {
             return new HoraExtraController(gestionRRHHService);
         }
         if (type == ShellController.class) {
-            return new ShellController();
+            return new ShellController(sesionService, navegador);
         }
         if (type == LoginController.class) {
-            return new LoginController();
+            return new LoginController(usuarioService, sesionService, navegador);
         }
 
-        // Si JavaFX pide un controlador que se crea por defecto sin parámetros
         try {
             return type.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
@@ -84,16 +89,21 @@ public class AppContext {
         }
     }
 
-     //Devuelve el servicio de empleados.
-
     public IGestionRRHHService getGestionRRHHService() {
         return gestionRRHHService;
     }
+
     public IUsuarioService getUsuarioService() {
         return usuarioService;
     }
 
-    //Libera los recursos de la aplicación.
+    public SesionService getSesionService() {
+        return sesionService;
+    }
+
+    public Navegador getNavegador() {
+        return navegador;
+    }
 
     public void destroy() {
         if (dataBaseConfig != null) {
